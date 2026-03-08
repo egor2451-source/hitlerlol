@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Hitler windows</title>
+    <style>
+        body { text-align: center; margin-top: 50px; background: #000; color: #fff; }
+        img { cursor: pointer; border: 2px solid red; border-radius: 10px; max-width: 300px; }
+    </style>
+</head>
+<body>
+    <h1>Кликни на Гитлера</h1>
+    <img src="https://i.ytimg.com/vi/qscNgWmvksM/maxresdefault.jpg" 
+         alt="Adolf Hitler" 
+         onclick="startWindows()">
+
+    <script>
+        let windows = [];
+        let animFrame = null;
+        const SPEED = 8;
+        const WIDTH = 300;
+        const HEIGHT = 200;
+        const COUNT = 10;
+        const IMG_URL = "https://i.ytimg.com/vi/qscNgWmvksM/maxresdefault.jpg";
+
+        function startWindows() {
+            for (let i = 0; i < COUNT; i++) {
+                let win = window.open(
+                    'about:blank',
+                    `hitler_win_${i}`,
+                    `width=${WIDTH},height=${HEIGHT},left=${randomCoord().x},top=${randomCoord().y},menubar=no,toolbar=no,location=no,status=no`
+                );
+
+                if (win) {
+                    windows.push({
+                        win: win,
+                        x: randomCoord().x,
+                        y: randomCoord().y,
+                        dx: randomSign() * SPEED,
+                        dy: randomSign() * SPEED
+                    });
+
+                    try {
+                        win.document.write(`
+                            <html>
+                            <head><style>
+                                body { margin:0; background:black; display:flex; align-items:center; justify-content:center; height:100vh; overflow:hidden; }
+                                img { max-width:100%; max-height:100%; object-fit:contain; }
+                            </style></head>
+                            <body>
+                                <img src="${IMG_URL}" alt="Hitler">
+                            </body>
+                            </html>
+                        `);
+                        win.document.close();
+                    } catch (e) {}
+                } else {
+                    alert('Браузер заблокировал всплывающее окно. Разреши попапы для этого сайта.');
+                }
+            }
+
+            if (windows.length > 0 && !animFrame) {
+                animFrame = requestAnimationFrame(moveWindows);
+            }
+        }
+
+        function moveWindows() {
+            windows = windows.filter(w => !w.win.closed);
+
+            for (let w of windows) {
+                w.x += w.dx;
+                w.y += w.dy;
+
+                const maxX = screen.availWidth - WIDTH;
+                const maxY = screen.availHeight - HEIGHT;
+
+                if (w.x <= 0) { w.x = 0; w.dx = -w.dx; }
+                if (w.x >= maxX) { w.x = maxX; w.dx = -w.dx; }
+                if (w.y <= 0) { w.y = 0; w.dy = -w.dy; }
+                if (w.y >= maxY) { w.y = maxY; w.dy = -w.dy; }
+
+                try {
+                    w.win.moveTo(Math.round(w.x), Math.round(w.y));
+                } catch (e) {}
+            }
+
+            if (windows.length > 0) {
+                animFrame = requestAnimationFrame(moveWindows);
+            } else {
+                animFrame = null;
+            }
+        }
+
+        function randomCoord() {
+            return {
+                x: Math.floor(Math.random() * (screen.availWidth - WIDTH)),
+                y: Math.floor(Math.random() * (screen.availHeight - HEIGHT))
+            };
+        }
+
+        function randomSign() {
+            return Math.random() > 0.5 ? 1 : -1;
+        }
+    </script>
+</body>
+</html>
